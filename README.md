@@ -1,4 +1,5 @@
 # 🛡️ Real-Time Financial Fraud Analytics Platform
+# Advanced Credit Card Fraud Detection
 
 > An end-to-end AI-powered web application for detecting fraudulent credit card transactions using Machine Learning, with user authentication, CSV dataset upload, and an interactive analytics dashboard.
 
