@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+{% block title %}Home{% endblock %}
+{% block head %}
+<style>
+/* Landing-only styles */
+.lnav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  background: rgba(255,255,255,.96); backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0,0,0,.07);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 2.5rem; height: 64px;
+}
+.hero {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #4f46e5 0%, #6d28d9 45%, #7c3aed 75%, #9333ea 100%);
+  display: flex; align-items: center;
+  padding: 80px 2.5rem 60px;
+  position: relative; overflow: hidden;
+}
+.hero::before {
+  content: '';position: absolute;inset: 0;
+  background:
+    linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+.hero-inner {
+  max-width: 1200px; margin: 0 auto; width: 100%;
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 4rem;
+  position: relative; z-index: 1;
+}
+.hero-text { flex: 1; color: #fff; }
+.hero-text h1 {
+  font-size: clamp(2.2rem, 4.5vw, 3.8rem);
+  font-weight: 800; line-height: 1.12; margin-bottom: 1.2rem;
+}
+.hero-text p {
+  font-size: 1.05rem; line-height: 1.78;
+  color: rgba(255,255,255,.8); max-width: 480px; margin-bottom: 2rem;
+}
+.hero-btns { display: flex; gap: 1rem; flex-wrap: wrap; }
+.hbtn {
+  padding: .85rem 2rem; border-radius: 50px; font-size: .95rem;
+  font-weight: 700; text-decoration: none; transition: all .25s;
+  display: inline-flex; align-items: center; gap: .5rem; border: none;
+  cursor: pointer;
+}
+.hbtn-white {
+  background: #fff; color: var(--primary);
+  box-shadow: 0 4px 20px rgba(0,0,0,.2);
+}
+.hbtn-white:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,.25); }
+.hbtn-glass {
+  background: rgba(255,255,255,.14); color: #fff;
+  border: 2px solid rgba(255,255,255,.38); backdrop-filter: blur(4px);
+}
+.hbtn-glass:hover { background: rgba(255,255,255,.25); }
+
+/* Credit card */
+.card-3d {
+  width: 340px; height: 210px; flex-shrink: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,.28), rgba(255,255,255,.08));
+  border: 1px solid rgba(255,255,255,.3); border-radius: 20px;
+  padding: 24px 28px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 24px 64px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.3);
+  color: #fff; position: relative;
+  transform: perspective(800px) rotateY(-8deg) rotateX(4deg);
+  transition: transform .4s ease;
+}
+.card-3d:hover { transform: perspective(800px) rotateY(-3deg) rotateX(1deg); }
+.chip {
+  width: 44px; height: 34px; border-radius: 7px;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  margin-bottom: 18px; box-shadow: 0 2px 8px rgba(0,0,0,.2);
+}
+.card-brand {
+  position: absolute; top: 22px; right: 24px;
+  font-size: .75rem; font-weight: 700;
+  border: 1.5px solid rgba(255,255,255,.6);
+  padding: .2rem .5rem; border-radius: 4px;
+}
+.card-num {
+  font-family: 'Courier New', monospace; font-size: 1.1rem;
+  letter-spacing: .18em; margin-bottom: 18px;
+}
+.card-foot {
+  display: flex; justify-content: space-between;
+  font-size: .72rem; color: rgba(255,255,255,.68); text-transform: uppercase; letter-spacing: .07em;
+}
+.card-foot .v { font-size: .88rem; font-weight: 700; color: #fff; margin-top: 3px; }
+
+/* Stats strip */
+.stats { background: #fff; padding: 2.8rem 2.5rem; border-bottom: 1px solid #f0f0f0; }
+.stats-inner {
+  max-width: 1200px; margin: 0 auto;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; text-align: center;
+}
+.stat-item h3 { font-size: 2rem; font-weight: 800; color: var(--primary); margin-bottom: .3rem; }
+.stat-item p  { font-size: .88rem; color: var(--text-l); }
+
+/* Features */
+.features { padding: 5rem 2.5rem; background: #f8f9ff; }
+.section-eyebrow {
+  font-size: .78rem; font-weight: 700; letter-spacing: .15em;
+  color: var(--primary); text-transform: uppercase;
+  text-align: center; margin-bottom: .5rem;
+}
+.section-title {
+  font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 800;
+  text-align: center; color: var(--text); margin-bottom: .7rem;
+}
+.section-sub {
+  text-align: center; color: var(--text-l);
+  max-width: 500px; margin: 0 auto 3rem; line-height: 1.75;
+}
+.feat-grid {
+  max-width: 1200px; margin: 0 auto;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;
+}
+@media(max-width: 768px) { .feat-grid { grid-template-columns: 1fr; } }
+.feat-card {
+  background: #fff; border-radius: 16px; padding: 2rem;
+  border: 1px solid #eee; transition: all .3s;
+}
+.feat-card:hover {
+  border-color: var(--primary); transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(79,70,229,.12);
+}
+.feat-icon {
+  width: 52px; height: 52px; border-radius: 13px;
+  background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+  display: grid; place-items: center; margin-bottom: 1.1rem; font-size: 1.5rem;
+}
+.feat-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: .5rem; }
+.feat-card p  { font-size: .87rem; color: var(--text-l); line-height: 1.65; }
+
+/* How it works */
+.how { padding: 5rem 2.5rem; background: #fff; }
+.how-steps {
+  max-width: 900px; margin: 0 auto;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.5rem; text-align: center;
+}
+@media(max-width: 700px) { .how-steps { grid-template-columns: 1fr; } }
+.step-num {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--violet));
+  color: #fff; font-weight: 800; font-size: 1.15rem;
+  display: grid; place-items: center;
+  margin: 0 auto 1rem;
+  box-shadow: 0 4px 16px rgba(79,70,229,.38);
+}
+.step-title { font-size: 1rem; font-weight: 700; margin-bottom: .5rem; }
+.step-desc  { font-size: .86rem; color: var(--text-l); line-height: 1.65; }
+
+/* CTA */
+.cta {
+  padding: 5rem 2.5rem;
+  background: linear-gradient(135deg, var(--primary), var(--violet));
+  text-align: center; color: #fff;
+}
+.cta h2 { font-size: 2rem; font-weight: 800; margin-bottom: 1rem; }
+.cta p  { color: rgba(255,255,255,.8); margin-bottom: 2rem; font-size: 1rem; }
+
+/* Footer */
+footer {
+  background: #0f0e17; color: rgba(255,255,255,.4);
+  text-align: center; padding: 1.5rem; font-size: .82rem;
+}
+footer a { color: #7c3aed; text-decoration: none; }
+</style>
+{% endblock %}
+{% block body %}
+
+<!-- NAV -->
+<nav class="lnav">
+  <a href="/" class="nav-logo">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"/></svg>
+    CCFD
+  </a>
+  <div style="display:flex;align-items:center;gap:2rem">
+    <a href="#features" style="font-size:.9rem;font-weight:500;color:#4b5563;text-decoration:none">Features</a>
+    <a href="#how"      style="font-size:.9rem;font-weight:500;color:#4b5563;text-decoration:none">How it works</a>
+  </div>
+  <div style="display:flex;gap:.75rem;align-items:center">
+    <a href="/login"    class="btn btn-outline btn-sm">Sign In</a>
+    <a href="/register" class="btn btn-primary btn-sm">Register</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-text">
+      <h1>Advanced Credit Card<br/>Fraud Detection</h1>
+      <p>Protect your transactions with our cutting-edge machine learning system. Real-time fraud detection with 99.8% accuracy to secure your financial operations.</p>
+      <div class="hero-btns">
+        <a href="/register" class="hbtn hbtn-white">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          Get Started Free
+        </a>
+        <a href="/login" class="hbtn hbtn-glass">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10,8 16,12 10,16" fill="currentColor" stroke="none"/></svg>
+          Live Demo
+        </a>
+      </div>
+    </div>
+    <div class="card-3d">
+      <div class="chip"></div>
+      <div class="card-brand">VISA</div>
+      <div class="card-num">•••• •••• •••• 1234</div>
+      <div class="card-foot">
+        <div><div>Card Holder</div><div class="v">JOHN DOE</div></div>
+        <div><div>Expires</div><div class="v">12/25</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section class="stats">
+  <div class="stats-inner">
+    <div class="stat-item"><h3>99.8%</h3><p>Detection Accuracy</p></div>
+    <div class="stat-item"><h3>&lt;100ms</h3><p>Response Time</p></div>
+    <div class="stat-item"><h3>30+</h3><p>ML Features Analyzed</p></div>
+    <div class="stat-item"><h3>284K+</h3><p>Transactions Trained On</p></div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="section-eyebrow">Why CCFD</div>
+  <h2 class="section-title">Everything You Need to Detect Fraud</h2>
+  <p class="section-sub">Upload your transaction CSV and let our AI model analyze patterns, score risk, and generate instant insights.</p>
+  <div class="feat-grid">
+    <div class="feat-card"><div class="feat-icon">🛡️</div><h3>Real-Time ML Detection</h3><p>Random Forest model analyzes 30 transaction features simultaneously and flags suspicious activity in milliseconds.</p></div>
+    <div class="feat-card"><div class="feat-icon">📊</div><h3>Analytics Dashboard</h3><p>Visualize fraud patterns with interactive charts — transaction trends, risk scores, fraud rates and full model performance metrics.</p></div>
+    <div class="feat-card"><div class="feat-icon">📁</div><h3>CSV Dataset Upload</h3><p>Upload any credit card transaction CSV. Compatible with the Kaggle standard format: V1–V28 + Amount + Class columns.</p></div>
+    <div class="feat-card"><div class="feat-icon">⚡</div><h3>Instant Results</h3><p>Get comprehensive reports — fraud counts, risk scores, confidence metrics, and per-transaction breakdown — immediately after upload.</p></div>
+    <div class="feat-card"><div class="feat-icon">🧠</div><h3>SMOTE-Balanced Model</h3><p>Trained with Synthetic Minority Oversampling (SMOTE) to handle the extreme class imbalance typical in real fraud datasets.</p></div>
+    <div class="feat-card"><div class="feat-icon">🔒</div><h3>Per-User Privacy</h3><p>Secure login system. Each user has their own private analysis history — your data is never shared or mixed with others.</p></div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="how">
+  <div class="section-eyebrow">Workflow</div>
+  <h2 class="section-title">How It Works</h2>
+  <p class="section-sub">Three simple steps from sign-up to fraud insights.</p>
+  <div class="how-steps">
+    <div><div class="step-num">1</div><div class="step-title">Create Account</div><div class="step-desc">Register with a username and password. Your analyses are private and secured to your account.</div></div>
+    <div><div class="step-num">2</div><div class="step-title">Upload CSV</div><div class="step-desc">Upload any transaction CSV file. The system auto-maps columns to the 30 model features and runs predictions.</div></div>
+    <div><div class="step-num">3</div><div class="step-title">View Results</div><div class="step-desc">Instantly see fraud counts, risk scores, model performance metrics, charts, and a full transaction breakdown table.</div></div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+  <h2>Start Detecting Fraud Today</h2>
+  <p>Analyze your first dataset in under a minute — completely free.</p>
+  <a href="/register" class="hbtn hbtn-white" style="display:inline-flex">Get Started Free →</a>
+</section>
+
+<footer>
+  © 2025 CCFD — Real-Time Financial Fraud Analytics Platform &nbsp;|&nbsp;
+  <a href="/login">Sign In</a> &nbsp;·&nbsp; <a href="/register">Register</a>
+</footer>
+{% endblock %}

@@ -1,0 +1,10 @@
+{
+  "accuracy": 99.98,
+  "precision": 100.0,
+  "recall": 98.75,
+  "f1_score": 99.37,
+  "roc_auc": 100.0,
+  "total_samples": 20000,
+  "fraud_samples": 400,
+  "normal_samples": 19600
+}

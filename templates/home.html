@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+{% block title %}Home{% endblock %}
+{% block head %}
+<style>
+.hero-banner {
+  background: linear-gradient(135deg, #4f46e5 0%, #6d28d9 55%, #9333ea 100%);
+  padding: 2.5rem 2.5rem 3.5rem;
+  display: flex; align-items: center; justify-content: space-between;
+  position: relative; overflow: hidden;
+}
+.hero-banner::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),
+              linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);
+  background-size: 50px 50px;
+}
+.hero-banner .text { color: #fff; position: relative; z-index: 1; }
+.hero-banner h1 { font-size: 1.7rem; font-weight: 800; margin-bottom: .4rem; }
+.hero-banner h1 span { color: #fbbf24; }
+.hero-banner p { font-size: .9rem; color: rgba(255,255,255,.78); line-height: 1.6; max-width: 420px; }
+.hero-banner .btns { display: flex; gap: .75rem; margin-top: 1.2rem; }
+.hero-icon { position: relative; z-index: 1; font-size: 4rem; opacity: .25; }
+
+/* KPI cards */
+.kpi-row {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;
+  max-width: 1200px; margin: -1.5rem auto 0; padding: 0 2rem;
+  position: relative; z-index: 10;
+}
+@media(max-width: 768px) { .kpi-row { grid-template-columns: repeat(2,1fr); } }
+.kpi-card {
+  background: #fff; border-radius: 12px;
+  padding: 1.2rem 1.4rem;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 20px rgba(0,0,0,.08);
+}
+.kpi-label { font-size: .75rem; font-weight: 600; color: var(--text-l); text-transform: uppercase; letter-spacing: .06em; margin-bottom: .4rem; }
+.kpi-value { font-size: 1.7rem; font-weight: 800; }
+.kpi-sub   { font-size: .75rem; color: var(--text-l); margin-top: .2rem; }
+.kv-primary { color: var(--primary); }
+.kv-red     { color: var(--red); }
+.kv-green   { color: var(--green); }
+.kv-amber   { color: var(--amber); }
+
+/* Main area */
+.main-content {
+  max-width: 1200px; margin: 2.5rem auto; padding: 0 2rem 4rem;
+}
+.section-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1.2rem;
+}
+.section-head h2 { font-size: 1.1rem; font-weight: 700; }
+.empty-state {
+  text-align: center; padding: 3.5rem 2rem;
+  border: 2px dashed var(--border); border-radius: 14px;
+  color: var(--text-l);
+}
+.empty-state .ei { font-size: 3rem; margin-bottom: 1rem; }
+.empty-state h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: .4rem; color: var(--text); }
+.empty-state p { font-size: .88rem; margin-bottom: 1.5rem; }
+
+/* Analysis cards */
+.analysis-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.2rem;
+}
+.an-card {
+  background: #fff; border: 1px solid var(--border); border-radius: 12px;
+  padding: 1.3rem 1.5rem; transition: all .2s;
+}
+.an-card:hover { border-color: #c7d2fe; box-shadow: 0 6px 24px rgba(79,70,229,.1); }
+.an-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1rem; }
+.an-filename {
+  font-weight: 700; color: var(--text); font-size: .95rem;
+  display: flex; align-items: center; gap: .4rem;
+}
+.an-date { font-size: .76rem; color: var(--text-l); margin-top: .2rem; }
+.an-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .6rem; margin-bottom: 1rem; }
+.ans-item { text-align: center; }
+.ans-val  { font-size: 1.05rem; font-weight: 700; }
+.ans-lbl  { font-size: .7rem; color: var(--text-l); margin-top: .1rem; }
+.an-prog-wrap { margin-bottom: 1rem; }
+.an-prog-label { display: flex; justify-content: space-between; font-size: .75rem; color: var(--text-l); margin-bottom: .3rem; }
+.an-actions { display: flex; gap: .6rem; }
+</style>
+{% endblock %}
+{% block body %}
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a href="/" class="nav-logo">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"/></svg>
+    CCFD
+  </a>
+  <div class="nav-links">
+    <a href="/home" class="active">Home</a>
+    <a href="/upload">Model</a>
+    <a href="/profile">Profile</a>
+  </div>
+  <div class="nav-user">
+    <div class="avatar">{{ user.username[0].upper() }}</div>
+    {{ user.username }} ▾
+    <div class="dropdown">
+      <a href="/profile">👤 Profile</a>
+      <a href="/upload">📁 New Analysis</a>
+      <hr/>
+      <a href="/logout" style="color:var(--red)">🚪 Sign Out</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO BANNER -->
+<div class="hero-banner">
+  <div class="text">
+    <h1>Welcome back, <span>{{ user.username }}!</span></h1>
+    <p>Monitor your fraud detection activities and access advanced machine learning models to protect your transactions.</p>
+    <div class="btns">
+      <a href="/upload" class="btn btn-primary" style="background:rgba(0,0,0,.25);box-shadow:none;border:1.5px solid rgba(255,255,255,.3)">
+        ⚡ Access Model
+      </a>
+      <a href="/profile" class="btn btn-ghost">⚙ Manage Profile</a>
+    </div>
+  </div>
+  <div class="hero-icon">📈</div>
+</div>
+
+<!-- KPI ROW -->
+<div class="kpi-row">
+  <div class="kpi-card">
+    <div class="kpi-label">Analyses Run</div>
+    <div class="kpi-value kv-primary">{{ analyses|length }}</div>
+    <div class="kpi-sub">Total datasets uploaded</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">TX Analyzed</div>
+    <div class="kpi-value kv-primary">{{ "{:,}".format(total_analyzed) }}</div>
+    <div class="kpi-sub">Across all analyses</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Fraud Detected</div>
+    <div class="kpi-value kv-red">{{ "{:,}".format(total_fraud) }}</div>
+    <div class="kpi-sub">Fraudulent transactions</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Model Accuracy</div>
+    <div class="kpi-value kv-green">99.8%</div>
+    <div class="kpi-sub">Random Forest classifier</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main-content">
+  <div class="section-head">
+    <h2>📂 Analysis History</h2>
+    <a href="/upload" class="btn btn-primary btn-sm">+ New Analysis</a>
+  </div>
+
+  {% if analyses %}
+  <div class="analysis-grid">
+    {% for a in analyses %}
+    <div class="an-card">
+      <div class="an-head">
+        <div>
+          <div class="an-filename">📄 {{ a.filename }}</div>
+          <div class="an-date">{{ a.created_at.strftime('%b %d, %Y · %H:%M') }}</div>
+        </div>
+        <span class="badge badge-{% if a.accuracy >= 97 %}green{% elif a.accuracy >= 90 %}blue{% else %}amber{% endif %}">
+          {{ a.accuracy }}%
+        </span>
+      </div>
+      <div class="an-stats">
+        <div class="ans-item">
+          <div class="ans-val kv-primary">{{ "{:,}".format(a.total_tx) }}</div>
+          <div class="ans-lbl">Total TX</div>
+        </div>
+        <div class="ans-item">
+          <div class="ans-val kv-red">{{ "{:,}".format(a.fraud_count) }}</div>
+          <div class="ans-lbl">Fraud</div>
+        </div>
+        <div class="ans-item">
+          <div class="ans-val kv-amber">{{ a.fraud_rate }}%</div>
+          <div class="ans-lbl">Rate</div>
+        </div>
+      </div>
+      <div class="an-prog-wrap">
+        <div class="an-prog-label">
+          <span>Fraud Rate</span><span>{{ a.fraud_rate }}%</span>
+        </div>
+        <div class="prog-bar">
+          <div class="prog-fill" data-w="{{ [a.fraud_rate * 10, 100]|min }}"
+               style="background: {% if a.fraud_rate > 5 %}var(--red){% elif a.fraud_rate > 2 %}var(--amber){% else %}var(--green){% endif %};width:0%"></div>
+        </div>
+      </div>
+      <div class="an-actions">
+        <a href="/result/{{ a.id }}" class="btn btn-outline btn-sm" style="flex:1;justify-content:center">📊 View Results</a>
+        <form method="POST" action="/result/{{ a.id }}/delete"
+              onsubmit="return confirm('Delete this analysis?')">
+          <button type="submit" class="btn btn-sm" style="background:#fef2f2;color:var(--red);border:1px solid #fecaca">🗑</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="empty-state">
+    <div class="ei">📊</div>
+    <h3>No analyses yet</h3>
+    <p>Upload a transaction CSV to get started with fraud detection.</p>
+    <a href="/upload" class="btn btn-primary">📁 Upload Your First Dataset</a>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

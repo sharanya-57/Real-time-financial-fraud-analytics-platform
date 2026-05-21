@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+.venv/
+.env
+*.db
+uploads/
+data/creditcard.csv
+static/images/confusion_matrix.png
+static/images/feature_importance.png
+screenshots/
+.DS_Store
+*.egg-info/
+dist/
+build/

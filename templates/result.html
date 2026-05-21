@@ -1,0 +1,324 @@
+{% extends 'base.html' %}
+{% block title %}Analysis Results{% endblock %}
+{% block head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+body { background: #f0f2f8; }
+.page-wrap { max-width: 1300px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+/* Page header */
+.res-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;
+}
+.res-header h1 { font-size: 1.35rem; font-weight: 800; }
+.res-header p   { font-size: .85rem; color: var(--text-l); margin-top: .2rem; }
+.res-actions    { display: flex; gap: .7rem; }
+
+/* KPI strip */
+.kpi-strip {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; margin-bottom: 1.5rem;
+}
+@media(max-width: 900px) { .kpi-strip { grid-template-columns: repeat(2,1fr); } }
+.kpi {
+  background: #fff; border: 1px solid var(--border);
+  border-radius: 12px; padding: 1.2rem 1.3rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,.05);
+  transition: transform .2s;
+}
+.kpi:hover { transform: translateY(-2px); }
+.kpi-label { font-size: .72rem; font-weight: 600; color: var(--text-l); text-transform: uppercase; letter-spacing: .07em; margin-bottom: .5rem; }
+.kpi-value { font-size: 1.75rem; font-weight: 800; line-height: 1; }
+.kpi-sub   { font-size: .76rem; color: var(--text-l); margin-top: .35rem; }
+.kv-blue   { color: var(--primary); }
+.kv-red    { color: var(--red); }
+.kv-amber  { color: var(--amber); }
+.kv-green  { color: var(--green); }
+
+/* Charts row */
+.charts-row {
+  display: grid; grid-template-columns: 2fr 1fr; gap: 1.2rem; margin-bottom: 1.2rem;
+}
+@media(max-width: 900px) { .charts-row { grid-template-columns: 1fr; } }
+.chart-card {
+  background: #fff; border: 1px solid var(--border);
+  border-radius: 14px; padding: 1.4rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,.05);
+}
+.chart-card h3 {
+  font-size: .82rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .07em; color: var(--text-l); margin-bottom: 1.2rem;
+}
+
+/* Bottom row */
+.bottom-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-bottom: 1.2rem;
+}
+@media(max-width: 900px) { .bottom-row { grid-template-columns: 1fr; } }
+
+/* Metric bars */
+.met-row { display: flex; align-items: center; gap: .75rem; margin-bottom: .85rem; }
+.met-name { font-size: .82rem; font-weight: 500; color: var(--text); width: 90px; flex-shrink: 0; }
+.met-bar  { flex: 1; }
+.met-pct  { font-size: .82rem; font-weight: 700; color: var(--primary); width: 46px; text-align: right; }
+
+/* TX Table */
+.tx-table-card {
+  background: #fff; border: 1px solid var(--border);
+  border-radius: 14px; padding: 1.4rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,.05);
+  margin-bottom: 1.2rem;
+}
+.tx-table-card h3 {
+  font-size: .82rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .07em; color: var(--text-l); margin-bottom: 1rem;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.risk-high   { color: var(--red);   font-weight: 700; }
+.risk-medium { color: var(--amber); font-weight: 700; }
+.risk-low    { color: var(--green); font-weight: 700; }
+</style>
+{% endblock %}
+{% block body %}
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a href="/" class="nav-logo">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"/></svg>
+    CCFD
+  </a>
+  <div class="nav-links">
+    <a href="/home">Home</a>
+    <a href="/upload">Model</a>
+    <a href="/profile">Profile</a>
+  </div>
+  <div class="nav-user">
+    <div class="avatar">{{ user.username[0].upper() }}</div>
+    {{ user.username }} ▾
+    <div class="dropdown">
+      <a href="/profile">👤 Profile</a>
+      <a href="/upload">📁 New Analysis</a>
+      <hr/>
+      <a href="/logout" style="color:var(--red)">🚪 Sign Out</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page-wrap">
+
+  <!-- Header -->
+  <div class="res-header">
+    <div>
+      <h1>📊 {{ a.filename }}</h1>
+      <p>Analysis completed on {{ a.created_at.strftime('%B %d, %Y at %H:%M') }} · {{ "{:,}".format(a.total_tx) }} transactions processed</p>
+    </div>
+    <div class="res-actions">
+      <a href="/upload" class="btn btn-outline btn-sm">+ New Analysis</a>
+      <a href="/home"   class="btn btn-primary btn-sm">← Dashboard</a>
+      <form method="POST" action="/result/{{ a.id }}/delete"
+            onsubmit="return confirm('Delete this analysis?')" style="display:inline">
+        <button type="submit" class="btn btn-danger btn-sm">🗑 Delete</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- KPI STRIP -->
+  <div class="kpi-strip">
+    <div class="kpi">
+      <div class="kpi-label">Total Transactions</div>
+      <div class="kpi-value kv-blue">{{ "{:,}".format(a.total_tx) }}</div>
+      <div class="kpi-sub">Rows in dataset</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Fraud Detected</div>
+      <div class="kpi-value kv-red">{{ "{:,}".format(a.fraud_count) }}</div>
+      <div class="kpi-sub">of {{ "{:,}".format(a.normal_count) }} normal</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Fraud Rate</div>
+      <div class="kpi-value kv-amber">{{ a.fraud_rate }}%</div>
+      <div class="kpi-sub">of all transactions</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Fraud Amount</div>
+      <div class="kpi-value kv-red">${{ "{:,.0f}".format(a.fraud_amount) }}</div>
+      <div class="kpi-sub">of ${{ "{:,.0f}".format(a.total_amount) }} total</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Model Accuracy</div>
+      <div class="kpi-value kv-green">{{ a.accuracy }}%</div>
+      <div class="kpi-sub">Random Forest</div>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW -->
+  <div class="charts-row">
+    <div class="chart-card">
+      <h3>Transaction Distribution Across Dataset</h3>
+      <canvas id="lineChart" height="80"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Fraud vs Normal Split</h3>
+      <canvas id="pieChart" height="130"></canvas>
+    </div>
+  </div>
+
+  <!-- BOTTOM ROW: metrics + alerts -->
+  <div class="bottom-row">
+    <!-- Model Performance -->
+    <div class="chart-card">
+      <h3>Model Performance Metrics</h3>
+      {% set metrics = [
+        ('Accuracy',  a.accuracy),
+        ('Precision', a.precision_sc),
+        ('Recall',    a.recall_sc),
+        ('F1-Score',  a.f1_sc),
+        ('ROC-AUC',   a.roc_auc),
+      ] %}
+      {% for name, val in metrics %}
+      <div class="met-row">
+        <div class="met-name">{{ name }}</div>
+        <div class="met-bar">
+          <div class="prog-bar">
+            <div class="prog-fill" data-w="{{ val }}" style="width:0%"></div>
+          </div>
+        </div>
+        <div class="met-pct">{{ val }}%</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- High-Risk Alerts -->
+    <div class="chart-card">
+      <h3>🚨 High-Risk Transactions</h3>
+      {% set high_risk = results|selectattr('is_fraud')|list %}
+      {% if high_risk %}
+        {% for r in high_risk[:6] %}
+        <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:.7rem 1rem;margin-bottom:.6rem;display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-weight:700;font-size:.85rem;color:var(--red)">TX #{{ r.id }}</div>
+            <div style="font-size:.78rem;color:var(--text-l);margin-top:.15rem">${{ "{:,.2f}".format(r.amount) }} · Risk {{ r.risk_score }}/100</div>
+          </div>
+          <div style="text-align:right">
+            <div class="badge badge-red">FRAUD</div>
+            <div style="font-size:.76rem;color:var(--text-l);margin-top:.2rem">{{ r.confidence }}% conf.</div>
+          </div>
+        </div>
+        {% endfor %}
+        {% if high_risk|length > 6 %}
+        <div style="text-align:center;font-size:.8rem;color:var(--text-l);margin-top:.5rem">+{{ high_risk|length - 6 }} more in table below</div>
+        {% endif %}
+      {% else %}
+        <div style="text-align:center;padding:2rem;color:var(--text-l)">
+          <div style="font-size:2rem;margin-bottom:.5rem">✅</div>
+          <div style="font-weight:600">No high-risk transactions found</div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- TRANSACTION TABLE -->
+  <div class="tx-table-card">
+    <h3>
+      Top 50 Highest-Risk Transactions
+      <span class="badge badge-blue">{{ results|length }} records</span>
+    </h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>TX ID</th>
+            <th>Amount</th>
+            <th>Fraud Confidence</th>
+            <th>Risk Score</th>
+            <th>Prediction</th>
+            {% if results and results[0].true_label is not none %}<th>True Label</th>{% endif %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in results %}
+          <tr>
+            <td style="font-family:monospace;color:var(--primary);font-weight:700">#{{ r.id }}</td>
+            <td>${{ "{:,.2f}".format(r.amount) }}</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:.5rem">
+                <div class="prog-bar" style="width:80px">
+                  <div class="prog-fill" data-w="{{ r.confidence }}"
+                       style="width:0%;background:{% if r.is_fraud %}var(--red){% else %}var(--green){% endif %}"></div>
+                </div>
+                {{ r.confidence }}%
+              </div>
+            </td>
+            <td class="{% if r.risk_score >= 70 %}risk-high{% elif r.risk_score >= 40 %}risk-medium{% else %}risk-low{% endif %}">
+              {{ r.risk_score }}/100
+            </td>
+            <td>
+              {% if r.is_fraud %}
+              <span class="tag-fraud">FRAUD</span>
+              {% else %}
+              <span class="tag-normal">NORMAL</span>
+              {% endif %}
+            </td>
+            {% if r.true_label is not none %}
+            <td>
+              {% if r.true_label == 1 %}<span class="tag-fraud">FRAUD</span>
+              {% else %}<span class="tag-normal">NORMAL</span>{% endif %}
+            </td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /page-wrap -->
+{% endblock %}
+{% block scripts %}
+<script>
+Chart.defaults.color = '#6b7280';
+Chart.defaults.borderColor = 'rgba(0,0,0,.06)';
+
+const chart = {{ chart | tojson }};
+
+// Line chart
+new Chart(document.getElementById('lineChart'), {
+  type: 'bar',
+  data: {
+    labels: chart.labels,
+    datasets: [
+      { label: 'Normal', data: chart.normal, backgroundColor: 'rgba(79,70,229,.7)', borderRadius: 3 },
+      { label: 'Fraud',  data: chart.fraud,  backgroundColor: 'rgba(220,38,38,.75)', borderRadius: 3 },
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: true,
+    plugins: { legend: { labels: { font: { size: 11 } } } },
+    scales: {
+      x: { stacked: true, ticks: { font: { size: 10 }, maxTicksLimit: 10 } },
+      y: { stacked: true, ticks: { font: { size: 10 } } }
+    }
+  }
+});
+
+// Pie chart
+new Chart(document.getElementById('pieChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Normal', 'Fraud'],
+    datasets: [{
+      data: [{{ a.normal_count }}, {{ a.fraud_count }}],
+      backgroundColor: ['rgba(79,70,229,.25)', 'rgba(220,38,38,.35)'],
+      borderColor: ['#4f46e5', '#dc2626'],
+      borderWidth: 2, hoverOffset: 8,
+    }]
+  },
+  options: {
+    responsive: true, cutout: '68%',
+    plugins: {
+      legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 14 } }
+    }
+  }
+});
+</script>
+{% endblock %}

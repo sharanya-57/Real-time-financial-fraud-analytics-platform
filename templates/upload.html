@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+{% block title %}Upload Dataset{% endblock %}
+{% block head %}
+<style>
+.page-wrap {
+  max-width: 820px; margin: 3rem auto; padding: 0 1.5rem 4rem;
+}
+.page-header { margin-bottom: 2rem; }
+.page-header h1 { font-size: 1.6rem; font-weight: 800; margin-bottom: .4rem; }
+.page-header p  { color: var(--text-l); font-size: .9rem; }
+
+/* Drop zone */
+.drop-zone {
+  border: 2.5px dashed #c7d2fe;
+  border-radius: 14px; padding: 3rem 2rem;
+  text-align: center; cursor: pointer;
+  transition: all .25s; background: #fafbff;
+  margin-bottom: 1.5rem;
+}
+.drop-zone:hover, .drop-zone.drag-over {
+  border-color: var(--primary);
+  background: #f0f1ff;
+}
+.drop-icon { font-size: 3rem; margin-bottom: .8rem; }
+.drop-title { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: .4rem; }
+.drop-sub   { font-size: .85rem; color: var(--text-l); margin-bottom: 1rem; }
+.drop-hint  { font-size: .8rem; color: #7c3aed; font-weight: 500; }
+#file-input { display: none; }
+
+/* Selected file */
+.file-selected {
+  display: none;
+  background: #f0fdf4; border: 1px solid #bbf7d0;
+  border-radius: 10px; padding: 1rem 1.2rem;
+  margin-bottom: 1.5rem;
+  align-items: center; gap: 1rem;
+}
+.file-selected.show { display: flex; }
+.file-icon-wrap { font-size: 1.8rem; }
+.file-info { flex: 1; }
+.file-name { font-weight: 700; color: var(--text); font-size: .95rem; }
+.file-size { font-size: .8rem; color: var(--text-l); margin-top: .2rem; }
+.file-ok   { color: var(--green); font-weight: 600; font-size: .85rem; }
+
+/* Info cards */
+.info-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem;
+}
+.info-box {
+  background: #f8f9ff; border: 1px solid #e0e7ff;
+  border-radius: 10px; padding: 1rem; text-align: center;
+}
+.info-box .iv { font-size: 1.05rem; font-weight: 800; color: var(--primary); }
+.info-box .il { font-size: .78rem; color: var(--text-l); margin-top: .25rem; }
+
+/* Schema table */
+.schema-wrap {
+  background: #fff; border: 1px solid var(--border);
+  border-radius: 12px; padding: 1.4rem 1.6rem; margin-bottom: 2rem;
+}
+.schema-wrap h3 { font-size: .9rem; font-weight: 700; margin-bottom: 1rem; color: var(--text); }
+.schema-row {
+  display: flex; align-items: center; gap: .75rem;
+  padding: .45rem 0; border-bottom: 1px solid #f3f4f6;
+}
+.schema-row:last-child { border: none; }
+.schema-col { font-family: monospace; font-size: .82rem; font-weight: 700; color: var(--primary); width: 80px; }
+.schema-type { font-size: .75rem; color: #fff; background: var(--primary); padding: .1rem .45rem; border-radius: 4px; }
+.schema-desc { font-size: .82rem; color: var(--text-l); flex: 1; }
+.schema-req  { font-size: .72rem; }
+</style>
+{% endblock %}
+{% block body %}
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a href="/" class="nav-logo">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"/></svg>
+    CCFD
+  </a>
+  <div class="nav-links">
+    <a href="/home">Home</a>
+    <a href="/upload" class="active">Model</a>
+    <a href="/profile">Profile</a>
+  </div>
+  <div class="nav-user">
+    <div class="avatar">{{ user.username[0].upper() }}</div>
+    {{ user.username }} ▾
+    <div class="dropdown">
+      <a href="/profile">👤 Profile</a>
+      <a href="/home">🏠 Home</a>
+      <hr/>
+      <a href="/logout" style="color:var(--red)">🚪 Sign Out</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page-wrap">
+  <div class="page-header">
+    <h1>📁 Dataset Analysis</h1>
+    <p>Upload a transaction CSV file. Our Random Forest model will analyze every row and return fraud predictions instantly.</p>
+  </div>
+
+  {% if error %}
+  <div class="alert alert-danger">⚠ {{ error }}</div>
+  {% endif %}
+
+  <form method="POST" enctype="multipart/form-data" id="upload-form">
+
+    <!-- Drop zone -->
+    <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+      <div class="drop-icon">📊</div>
+      <div class="drop-title">Drag & Drop your CSV file here</div>
+      <div class="drop-sub">or click to browse your computer</div>
+      <div class="drop-hint">Supports: creditcard.csv Kaggle format · Max 150 MB</div>
+      <input type="file" name="file" id="file-input" accept=".csv" required/>
+    </div>
+
+    <!-- Selected file preview -->
+    <div class="file-selected" id="file-preview">
+      <div class="file-icon-wrap">📄</div>
+      <div class="file-info">
+        <div class="file-name" id="fname">—</div>
+        <div class="file-size" id="fsize">—</div>
+      </div>
+      <div class="file-ok">✓ Ready to analyze</div>
+    </div>
+
+    <!-- Info cards -->
+    <div class="info-grid">
+      <div class="info-box"><div class="iv">V1 – V28</div><div class="il">PCA-transformed features</div></div>
+      <div class="info-box"><div class="iv">Amount</div><div class="il">Transaction value ($)</div></div>
+      <div class="info-box"><div class="iv">Class</div><div class="il">0 = Normal · 1 = Fraud</div></div>
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-full" style="padding:.9rem;font-size:1rem" id="submit-btn">
+      ⚡ Analyze Dataset
+    </button>
+  </form>
+
+  <!-- Schema reference -->
+  <div class="schema-wrap" style="margin-top:2rem">
+    <h3>📋 Expected CSV Schema</h3>
+    <div class="schema-row">
+      <span class="schema-col">Time</span>
+      <span class="schema-type">float</span>
+      <span class="schema-desc">Seconds elapsed since first transaction</span>
+      <span class="schema-req badge badge-green">Required</span>
+    </div>
+    <div class="schema-row">
+      <span class="schema-col">Amount</span>
+      <span class="schema-type">float</span>
+      <span class="schema-desc">Transaction amount in USD</span>
+      <span class="schema-req badge badge-green">Required</span>
+    </div>
+    <div class="schema-row">
+      <span class="schema-col">V1 – V28</span>
+      <span class="schema-type">float</span>
+      <span class="schema-desc">PCA-anonymized transaction features</span>
+      <span class="schema-req badge badge-green">Required</span>
+    </div>
+    <div class="schema-row">
+      <span class="schema-col">Class</span>
+      <span class="schema-type">int</span>
+      <span class="schema-desc">Ground truth label (0 = normal, 1 = fraud). Used to compute real accuracy metrics.</span>
+      <span class="schema-req badge badge-amber">Optional</span>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+const input   = document.getElementById('file-input');
+const preview = document.getElementById('file-preview');
+const drop    = document.getElementById('drop-zone');
+const form    = document.getElementById('upload-form');
+const btn     = document.getElementById('submit-btn');
+
+input.addEventListener('change', () => showFile(input.files[0]));
+
+drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('drag-over'); });
+drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
+drop.addEventListener('drop', e => {
+  e.preventDefault(); drop.classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f) { input.files = e.dataTransfer.files; showFile(f); }
+});
+
+function showFile(f) {
+  if (!f) return;
+  document.getElementById('fname').textContent = f.name;
+  document.getElementById('fsize').textContent = (f.size / 1024 / 1024).toFixed(2) + ' MB';
+  preview.classList.add('show');
+}
+
+form.addEventListener('submit', () => {
+  btn.disabled = true;
+  btn.textContent = '⏳ Analyzing... Please wait';
+});
+</script>
+{% endblock %}

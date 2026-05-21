@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+{% block title %}{% if mode=='login' %}Sign In{% else %}Create Account{% endif %}{% endblock %}
+{% block head %}
+<style>
+body { background: #f0f2f8; display: flex; flex-direction: column; min-height: 100vh; }
+.anav {
+  background: #fff; border-bottom: 1px solid var(--border);
+  padding: 0 2rem; height: 56px;
+  display: flex; align-items: center;
+}
+.page {
+  flex: 1; display: flex; align-items: center;
+  justify-content: center; padding: 2rem;
+}
+.auth-card {
+  background: #fff; border-radius: 20px;
+  box-shadow: 0 24px 64px rgba(0,0,0,.13);
+  display: flex; overflow: hidden;
+  width: 100%; max-width: 800px; min-height: 500px;
+}
+/* Left panel */
+.auth-left {
+  flex: 0 0 320px;
+  background: linear-gradient(150deg, #4f46e5 0%, #6d28d9 50%, #9333ea 100%);
+  padding: 3rem 2.5rem; color: #fff;
+  display: flex; flex-direction: column; justify-content: center;
+  position: relative; overflow: hidden;
+}
+.auth-left::before {
+  content: ''; position: absolute;
+  right: -70px; top: 50%; transform: translateY(-50%);
+  width: 260px; height: 260px; border-radius: 50%;
+  background: rgba(255,255,255,.1);
+}
+.auth-left::after {
+  content: ''; position: absolute;
+  right: -20px; bottom: -40px;
+  width: 180px; height: 180px; border-radius: 50%;
+  background: rgba(255,255,255,.06);
+}
+.left-logo {
+  display: flex; align-items: center; gap: .5rem;
+  font-size: 1.4rem; font-weight: 800; margin-bottom: 1.8rem;
+  position: relative; z-index: 1;
+}
+.left-logo svg { width: 28px; height: 28px; }
+.auth-left h2 {
+  font-size: 1.55rem; font-weight: 800; line-height: 1.3;
+  margin-bottom: .8rem; position: relative; z-index: 1;
+}
+.auth-left p {
+  font-size: .88rem; color: rgba(255,255,255,.78);
+  line-height: 1.68; margin-bottom: 1.8rem;
+  position: relative; z-index: 1;
+}
+.auth-points { list-style: none; position: relative; z-index: 1; }
+.auth-points li {
+  font-size: .85rem; color: rgba(255,255,255,.88);
+  display: flex; align-items: center; gap: .55rem; margin-bottom: .65rem;
+}
+.ap-check {
+  width: 20px; height: 20px; border-radius: 50%;
+  background: rgba(255,255,255,.2);
+  display: grid; place-items: center; flex-shrink: 0; font-size: .65rem;
+}
+/* Right panel */
+.auth-right {
+  flex: 1; padding: 3rem 2.5rem;
+  display: flex; flex-direction: column; justify-content: center;
+}
+.auth-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1.8rem;
+}
+.auth-head h3 { font-size: 1.3rem; font-weight: 700; color: var(--text); }
+.secure-pill {
+  font-size: .72rem; background: #f0fdf4; color: #15803d;
+  border: 1px solid #bbf7d0; border-radius: 20px;
+  padding: .25rem .7rem;
+  display: flex; align-items: center; gap: .35rem;
+}
+.demo-box {
+  background: #f8f7ff; border: 1px solid #ddd6fe;
+  border-radius: 8px; padding: .75rem 1rem;
+  font-size: .82rem; color: #4f46e5; margin-top: 1rem;
+}
+.demo-box strong { display: block; font-size: .8rem; color: #3730a3; margin-bottom: .2rem; }
+.switch-link {
+  text-align: center; font-size: .85rem; color: var(--text-l); margin-top: 1rem;
+}
+.switch-link a { color: var(--primary); font-weight: 600; text-decoration: none; }
+.switch-link a:hover { text-decoration: underline; }
+@media(max-width: 600px) { .auth-left { display: none; } .auth-right { padding: 2rem 1.5rem; } }
+</style>
+{% endblock %}
+{% block body %}
+
+<nav class="anav">
+  <a href="/" class="nav-logo">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"/></svg>
+    CCFD
+  </a>
+</nav>
+
+<div class="page">
+  <div class="auth-card">
+
+    <!-- LEFT -->
+    <div class="auth-left">
+      <div class="left-logo">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"/></svg>
+        CCFD
+      </div>
+      {% if mode == 'login' %}
+      <h2>WELCOME BACK!</h2>
+      <p>Access your fraud detection dashboard and continue protecting your transactions with our advanced AI-powered system.</p>
+      {% else %}
+      <h2>JOIN CCFD TODAY</h2>
+      <p>Create your free account and start analyzing transaction datasets for fraud patterns using our ML model instantly.</p>
+      {% endif %}
+      <ul class="auth-points">
+        <li><div class="ap-check">✓</div> 99.8% Detection Accuracy</li>
+        <li><div class="ap-check">✓</div> Real-time Analysis</li>
+        <li><div class="ap-check">✓</div> Bank-level Security</li>
+      </ul>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="auth-right">
+      <div class="auth-head">
+        <h3>{% if mode=='login' %}➜ Secure Login{% else %}📝 Create Account{% endif %}</h3>
+        <div class="secure-pill">🔒 Secure Connection</div>
+      </div>
+
+      {% if error %}
+      <div class="alert alert-danger">⚠ {{ error }}</div>
+      {% endif %}
+
+      <form method="POST" autocomplete="on">
+        {% if mode == 'register' %}
+        <div class="form-group">
+          <label>Username</label>
+          <div class="input-wrap">
+            <span class="input-icon">👤</span>
+            <input type="text" name="username" placeholder="Choose a username"
+                   value="{{ (vals or {}).get('username','') }}" required autocomplete="username"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <div class="input-wrap">
+            <span class="input-icon">✉</span>
+            <input type="email" name="email" placeholder="your@email.com"
+                   value="{{ (vals or {}).get('email','') }}" required autocomplete="email"/>
+          </div>
+        </div>
+        {% else %}
+        <div class="form-group">
+          <label>Username</label>
+          <div class="input-wrap">
+            <span class="input-icon">👤</span>
+            <input type="text" name="username" placeholder="Enter your username"
+                   value="{{ (vals or {}).get('username','') }}" required autocomplete="username"/>
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="form-group">
+          <label>Password</label>
+          <div class="input-wrap">
+            <span class="input-icon">🔒</span>
+            <input type="password" name="password" placeholder="Enter password"
+                   required autocomplete="{% if mode=='login' %}current-password{% else %}new-password{% endif %}"/>
+          </div>
+        </div>
+
+        {% if mode == 'register' %}
+        <div class="form-group">
+          <label>Confirm Password</label>
+          <div class="input-wrap">
+            <span class="input-icon">🔒</span>
+            <input type="password" name="confirm" placeholder="Re-enter your password" required/>
+          </div>
+        </div>
+        {% endif %}
+
+        <button type="submit" class="btn btn-primary btn-full" style="margin-top:.4rem;padding:.8rem">
+          {% if mode=='login' %}🔑 Secure Login{% else %}🚀 Create Account{% endif %}
+        </button>
+      </form>
+
+      {% if mode == 'login' %}
+      <div class="demo-box">
+        <strong>Demo Credentials</strong>
+        Username: <strong>demo</strong> &nbsp;|&nbsp; Password: <strong>demo123</strong>
+      </div>
+      <div class="switch-link">New to CCFD? <a href="/register">Create Account</a></div>
+      {% else %}
+      <div class="switch-link" style="margin-top:1.2rem">Already have an account? <a href="/login">Sign In</a></div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}
