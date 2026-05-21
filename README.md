@@ -9,22 +9,6 @@
 
 ---
 
-## 📸 Screenshots
-
-| Landing Page | Login / Register |
-|---|---|
-| ![Landing](screenshots/landing.png) | ![Auth](screenshots/auth.png) |
-
-| User Dashboard | Dataset Upload |
-|---|---|
-| ![Home](screenshots/home.png) | ![Upload](screenshots/upload.png) |
-
-| Analytics Results | User Profile |
-|---|---|
-| ![Result](screenshots/result.png) | ![Profile](screenshots/profile.png) |
-
----
-
 ## ✨ Features
 
 | Feature | Description |
